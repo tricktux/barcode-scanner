@@ -2,6 +2,7 @@
 file(GLOB SOURCES "*.cpp")
 
 include_directories(${CMAKE_SOURCE_DIR}/inc)
+include_directories(${OpenCV_INCLUDE_DIRS}) # Not needed for CMake >= 2.8.11
 
 if (GLOG_FOUND)
 	include_directories(SYSTEM "${GLOG_INCLUDE_DIRS}")
@@ -37,3 +38,4 @@ endif ()
 if (ZBAR_FOUND)
 	target_link_libraries (barcode-scanner ${OpenCV_LIBRARIES} ${ZBAR_LIBRARIES})
 endif ()
+target_link_libraries(barcode-scanner ${OpenCV_LIBS})
