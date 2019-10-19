@@ -46,8 +46,8 @@ void decode(cv::Mat &im, std::vector<decoded_object> &objects) {
   cv::cvtColor(im, imGray, cv::COLOR_BGR2GRAY);
 
   // Wrap image data in a zbar image
-	zbar::Image image(im.cols, im.rows, "Y800", (uchar *)imGray.data,
-              im.cols * im.rows);
+  zbar::Image image(im.cols, im.rows, "Y800", (uchar *)imGray.data,
+                    im.cols * im.rows);
 
   // Scan the image for barcodes and QRCodes
   scanner.scan(image);
@@ -61,8 +61,8 @@ void decode(cv::Mat &im, std::vector<decoded_object> &objects) {
     obj.data = symbol->get_data();
 
     // Print type and data
-		std::cout << "Type : " << obj.type << std::endl;
-		std::cout << "Data : " << obj.data << std::endl << std::endl;
+    std::cout << "Type : " << obj.type << std::endl;
+    std::cout << "Data : " << obj.data << std::endl << std::endl;
 
     // Obtain location
     for (int i = 0; i < symbol->get_location_size(); i++) {
@@ -72,6 +72,33 @@ void decode(cv::Mat &im, std::vector<decoded_object> &objects) {
 
     objects.push_back(obj);
   }
+}
+
+// Display barcode and QR code location
+void display(cv::Mat &im, std::vector<decoded_object> &objects) {
+  // Loop over all decoded objects
+  // for (int i = 0; i < objects.size(); i++) {
+  for (const auto &obj : objects) {
+    std::vector<cv::Point> points = obj.location;
+    std::vector<cv::Point> hull;
+
+    // If the points do not form a quad, find convex hull
+    if (points.size() > 4)
+      convexHull(points, hull);
+    else
+      hull = points;
+
+    // Number of points in the convex hull
+    int n = hull.size();
+
+    for (int j = 0; j < n; j++) {
+      line(im, hull[j], hull[(j + 1) % n], cv::Scalar(255, 0, 0), 3);
+    }
+  }
+
+  // Display results
+  imshow("Results", im);
+  cv::waitKey(0);
 }
 
 int main(int argc, const char *argv[]) {
