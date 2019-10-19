@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.1)
 # Set ProjectName
 project(barcode-scanner)
 
-option(USE_CLANG "build application with clang" ON) # ON is the default
+option(USE_CLANG "build application with clang" OFF) # ON is the default
 
 OPTION(ENABLE_ASAN "Enable ASAN" OFF)
 OPTION(ENABLE_USAN "Enable USAN" OFF)
@@ -97,7 +97,7 @@ find_package(Boost REQUIRED)
 
 find_package(ZBar0 REQUIRED)
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV REQUIRED core videoio)
 
 add_subdirectory("src")
 # add_subdirectory("docs")

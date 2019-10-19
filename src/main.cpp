@@ -18,19 +18,71 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http:www.gnu.org/licenses/>.
 
-#include <string>
-#include <iostream>
 #include <boost/lexical_cast.hpp>
+#include <iostream>
+#include <opencv4/opencv2/opencv.hpp>
+#include <string>
+#include <string_view>
+#include <vector>
 #include <zbar.h>
 
-int main(int argc, const char *argv[]) { 
+typedef struct {
+  std::string type;
+  std::string data;
+  std::vector<cv::Point> location;
+} decoded_object;
 
-	int count = 1;
+// Find and decode barcodes and QR codes
+void decode(cv::Mat &im, std::vector<decoded_object> &objects) {
 
-	zbar::ImageScanner is;
+  // Create zbar scanner
+  zbar::ImageScanner scanner;
 
-	std::string yours = boost::lexical_cast<std::string>(count);
+  // Configure scanner
+  scanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
 
-	std::cout << "yours:" << yours << std::endl;
-	return 0;
+  // Convert image to grayscale
+  cv::Mat imGray;
+  cv::cvtColor(im, imGray, cv::COLOR_BGR2GRAY);
+
+  // Wrap image data in a zbar image
+	zbar::Image image(im.cols, im.rows, "Y800", (uchar *)imGray.data,
+              im.cols * im.rows);
+
+  // Scan the image for barcodes and QRCodes
+  scanner.scan(image);
+
+  // Print results
+  for (zbar::Image::SymbolIterator symbol = image.symbol_begin();
+       symbol != image.symbol_end(); ++symbol) {
+    decoded_object obj;
+
+    obj.type = symbol->get_type_name();
+    obj.data = symbol->get_data();
+
+    // Print type and data
+		std::cout << "Type : " << obj.type << std::endl;
+		std::cout << "Data : " << obj.data << std::endl << std::endl;
+
+    // Obtain location
+    for (int i = 0; i < symbol->get_location_size(); i++) {
+      obj.location.push_back(
+          cv::Point(symbol->get_location_x(i), symbol->get_location_y(i)));
+    }
+
+    objects.push_back(obj);
+  }
+}
+
+int main(int argc, const char *argv[]) {
+
+  int count = 1;
+
+  std::string_view sv{argv[argc - 1]};
+  zbar::ImageScanner is;
+
+  std::string yours = boost::lexical_cast<std::string>(count);
+
+  std::cout << "yours:" << yours << std::endl;
+  return 0;
 }

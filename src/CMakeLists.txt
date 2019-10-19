@@ -22,6 +22,7 @@ endif ()
 # Set barcode-scanner.
 add_executable(barcode-scanner ${SOURCES})
 
+target_link_libraries(barcode-scanner ${OpenCV_LIBS})
 if (GLOG_FOUND)
 	target_link_libraries(barcode-scanner ${GLOG_LIBRARIES})
 endif ()
@@ -38,4 +39,3 @@ endif ()
 if (ZBAR_FOUND)
 	target_link_libraries (barcode-scanner ${OpenCV_LIBRARIES} ${ZBAR_LIBRARIES})
 endif ()
-target_link_libraries(barcode-scanner ${OpenCV_LIBS})
