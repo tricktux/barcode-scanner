@@ -97,7 +97,7 @@ find_package(Boost REQUIRED)
 
 find_package(ZBar0 REQUIRED)
 
-find_package(OpenCV REQUIRED core videoio)
+find_package(OpenCV REQUIRED core videoio imgproc highgui)
 
 add_subdirectory("src")
 # add_subdirectory("docs")

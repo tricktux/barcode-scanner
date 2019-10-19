@@ -20,7 +20,10 @@
 
 #include <boost/lexical_cast.hpp>
 #include <iostream>
-#include <opencv4/opencv2/opencv.hpp>
+#include "opencv2/imgproc.hpp"
+#include "opencv2/ximgproc.hpp"
+#include "opencv2/imgcodecs.hpp"
+#include "opencv2/highgui.hpp"
 #include <string>
 #include <string_view>
 #include <vector>
@@ -77,7 +80,6 @@ void decode(cv::Mat &im, std::vector<decoded_object> &objects) {
 // Display barcode and QR code location
 void display(cv::Mat &im, std::vector<decoded_object> &objects) {
   // Loop over all decoded objects
-  // for (int i = 0; i < objects.size(); i++) {
   for (const auto &obj : objects) {
     std::vector<cv::Point> points = obj.location;
     std::vector<cv::Point> hull;
@@ -92,24 +94,30 @@ void display(cv::Mat &im, std::vector<decoded_object> &objects) {
     int n = hull.size();
 
     for (int j = 0; j < n; j++) {
-      line(im, hull[j], hull[(j + 1) % n], cv::Scalar(255, 0, 0), 3);
+			cv::line(im, hull[j], hull[(j + 1) % n], cv::Scalar(255, 0, 0), 3);
     }
   }
 
   // Display results
-  imshow("Results", im);
-  cv::waitKey(0);
+	// cv::imshow("Results", im);
+	cv::imwrite("results.jpg", im);
+	// cv::waitKey(0);
 }
 
-int main(int argc, const char *argv[]) {
+int main() {
 
-  int count = 1;
+  // Read image
+  cv::Mat im = cv::imread("/home/reinaldo/IMG_0257.JPG");
 
-  std::string_view sv{argv[argc - 1]};
-  zbar::ImageScanner is;
+  // Variable for decoded objects
+  std::vector<decoded_object> objects;
 
-  std::string yours = boost::lexical_cast<std::string>(count);
+  // Find and decode barcodes and QR codes
+  decode(im, objects);
 
-  std::cout << "yours:" << yours << std::endl;
-  return 0;
+	cv::imwrite("results.jpg", im);
+  // Display location
+  // display(im, objects);
+
+  return EXIT_SUCCESS;
 }
