@@ -18,12 +18,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http:www.gnu.org/licenses/>.
 
-#include <boost/lexical_cast.hpp>
-#include <iostream>
+#include "opencv2/highgui.hpp"
+#include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/ximgproc.hpp"
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui.hpp"
+#include <boost/lexical_cast.hpp>
+#include <iostream>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -43,28 +43,28 @@ void decode(cv::Mat &im, std::vector<decoded_object> &objects) {
 
   // Configure scanner
   int rc = scanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
-	if (rc) {
-		std::cerr << "[ " << __FUNCTION__ << " ]: Failed to set scanner config";
-		return;
-	}
+  if (rc) {
+    std::cerr << "[ " << __FUNCTION__ << " ]: Failed to set scanner config";
+    return;
+  }
 
   // Convert image to grayscale
   cv::Mat imGray;
   cv::cvtColor(im, imGray, cv::COLOR_BGR2GRAY);
 
   // Wrap image data in a zbar image
-  zbar::Image image(imGray.cols, imGray.rows, "GRAY", (uchar *)imGray.data,
-                    imGray.cols * imGray.rows);
+  zbar::Image image(im.cols, im.rows, "Y800", (uchar *)imGray.data,
+                    im.cols * im.rows);
 
   // Scan the image for barcodes and QRCodes
   rc = scanner.scan(image);
-	if (rc <= 0) {
-		if (rc == 0)
-			std::cerr << "[ " << __FUNCTION__ << " ]: Failed to find any symbol";
-		else
-			std::cerr << "[ " << __FUNCTION__ << " ]: Error scanning symbols";
-		return;
-	}
+  if (rc <= 0) {
+    if (rc == 0)
+      std::cerr << "[ " << __FUNCTION__ << " ]: Failed to find any symbol";
+    else
+      std::cerr << "[ " << __FUNCTION__ << " ]: Error scanning symbols: " << rc;
+    return;
+  }
 
   // Print results
   for (zbar::Image::SymbolIterator symbol = image.symbol_begin();
@@ -88,6 +88,10 @@ void decode(cv::Mat &im, std::vector<decoded_object> &objects) {
   }
 }
 
+void decode2(const cv::Mat &im) {
+	auto img = cv::imread(img_loc.data());
+}
+
 // Display barcode and QR code location
 void display(cv::Mat &im, std::vector<decoded_object> &objects) {
   // Loop over all decoded objects
@@ -105,14 +109,14 @@ void display(cv::Mat &im, std::vector<decoded_object> &objects) {
     int n = hull.size();
 
     for (int j = 0; j < n; j++) {
-			cv::line(im, hull[j], hull[(j + 1) % n], cv::Scalar(255, 0, 0), 3);
+      cv::line(im, hull[j], hull[(j + 1) % n], cv::Scalar(255, 0, 0), 3);
     }
   }
 
   // Display results
-	// cv::imshow("Results", im);
-	cv::imwrite("results.jpg", im);
-	// cv::waitKey(0);
+  // cv::imshow("Results", im);
+  cv::imwrite("results.jpg", im);
+  // cv::waitKey(0);
 }
 
 int main() {
@@ -125,10 +129,10 @@ int main() {
 
   // Find and decode barcodes and QR codes
   decode(im, objects);
-	if (objects.empty())
-		return 1;
+  if (objects.empty())
+    return 1;
 
-	cv::imwrite("results.jpg", im);
+  cv::imwrite("results.jpg", im);
   // Display location
   // display(im, objects);
 
