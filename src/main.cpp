@@ -42,18 +42,29 @@ void decode(cv::Mat &im, std::vector<decoded_object> &objects) {
   zbar::ImageScanner scanner;
 
   // Configure scanner
-  scanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
+  int rc = scanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
+	if (rc) {
+		std::cerr << "[ " << __FUNCTION__ << " ]: Failed to set scanner config";
+		return;
+	}
 
   // Convert image to grayscale
   cv::Mat imGray;
   cv::cvtColor(im, imGray, cv::COLOR_BGR2GRAY);
 
   // Wrap image data in a zbar image
-  zbar::Image image(im.cols, im.rows, "Y800", (uchar *)imGray.data,
-                    im.cols * im.rows);
+  zbar::Image image(imGray.cols, imGray.rows, "GRAY", (uchar *)imGray.data,
+                    imGray.cols * imGray.rows);
 
   // Scan the image for barcodes and QRCodes
-  scanner.scan(image);
+  rc = scanner.scan(image);
+	if (rc <= 0) {
+		if (rc == 0)
+			std::cerr << "[ " << __FUNCTION__ << " ]: Failed to find any symbol";
+		else
+			std::cerr << "[ " << __FUNCTION__ << " ]: Error scanning symbols";
+		return;
+	}
 
   // Print results
   for (zbar::Image::SymbolIterator symbol = image.symbol_begin();
@@ -114,6 +125,8 @@ int main() {
 
   // Find and decode barcodes and QR codes
   decode(im, objects);
+	if (objects.empty())
+		return 1;
 
 	cv::imwrite("results.jpg", im);
   // Display location
