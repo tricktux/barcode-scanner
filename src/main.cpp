@@ -89,7 +89,26 @@ void decode(cv::Mat &im, std::vector<decoded_object> &objects) {
 }
 
 void decode2(const cv::Mat &im) {
-	auto img = cv::imread(img_loc.data());
+	zbar::Processor p{false, "", false};
+	int rc = p.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
+	if (rc) {
+		std::cerr << "[ " << __FUNCTION__ << " ]: Failed to set processor config";
+		return;
+	}
+	cv::Mat imGray;
+	cv::cvtColor(im, imGray, cv::COLOR_BGR2GRAY);
+
+	// Wrap image data in a zbar image
+	zbar::Image image(im.cols, im.rows, "Y800", (uchar *)imGray.data,
+			im.cols * im.rows);
+	p.process_image(image);
+	auto symbol = p.get_results();
+	if (symbol == NULL) {
+		std::cerr << "[ " << __FUNCTION__ << " ]: No result found";
+		return;
+	}
+
+	std::cout << "Yayyyy!!!!" << std::endl;
 }
 
 // Display barcode and QR code location
@@ -122,13 +141,14 @@ void display(cv::Mat &im, std::vector<decoded_object> &objects) {
 int main() {
 
   // Read image
-  cv::Mat im = cv::imread("/home/reinaldo/IMG_0257.JPG");
+  cv::Mat im = cv::imread("/home/reinaldo/Downloads/Barcode-Tattoos-Images.jpg");
 
   // Variable for decoded objects
   std::vector<decoded_object> objects;
 
   // Find and decode barcodes and QR codes
-  decode(im, objects);
+	decode(im, objects);
+	// decode2(im);
   if (objects.empty())
     return 1;
 
